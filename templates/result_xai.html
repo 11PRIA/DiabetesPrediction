@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Diabetes Predictor - Result with Explanation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --red-primary: #e53935;
+        --red-deep: #d32f2f;
+        --coral: #ff6f61;
+        --purple: #667eea;
+        --purple-deep: #764ba2;
+        --amber: #ffc107;
+        --text: #1f1f1f;
+        --text-muted: #666666;
+        --radius-sm: 10px;
+        --radius-md: 14px;
+        --radius-lg: 22px;
+        --shadow-card: 0 4px 6px rgba(0, 0, 0, 0.04), 0 18px 44px rgba(0, 0, 0, 0.07);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: #f3f4f6;
+        color: #333333;
+        background-image: url('{{ url_for("static", filename="diabetes.png") }}');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+        position: relative;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(245, 245, 245, 0.62);
+        z-index: -1;
+      }
+
+      .header {
+        background: linear-gradient(115deg, var(--red-primary) 0%, #c62828 45%, var(--red-deep) 100%);
+        padding: 2.25rem 1.5rem 2.5rem;
+        text-align: center;
+        box-shadow:
+          0 4px 6px rgba(183, 28, 28, 0.12),
+          0 12px 28px rgba(0, 0, 0, 0.12);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255, 255, 255, 0.16), transparent 55%);
+        pointer-events: none;
+      }
+
+      .header-inner {
+        position: relative;
+        z-index: 1;
+        max-width: 42rem;
+        margin: 0 auto;
+      }
+
+      .header-kicker {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.88);
+        margin-bottom: 0.65rem;
+      }
+
+      .header h1 {
+        color: #ffffff;
+        font-size: clamp(1.65rem, 3.5vw, 2.35rem);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.2;
+        text-shadow: 0 2px 22px rgba(0, 0, 0, 0.18);
+      }
+
+      .header-sub {
+        margin-top: 0.85rem;
+        font-size: 0.95rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: rgba(255, 255, 255, 0.9);
+        max-width: 32rem;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .container {
+        flex: 1;
+        width: 100%;
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 2.25rem 1.25rem 3rem;
+      }
+
+      .card {
+        position: relative;
+        background: #ffffff;
+        border-radius: var(--radius-lg);
+        padding: 2rem 1.75rem;
+        box-shadow: var(--shadow-card);
+        margin-bottom: 1.35rem;
+        animation: fadeIn 0.5s ease-out both;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        transition: box-shadow 0.25s ease, transform 0.25s ease;
+      }
+
+      .card:hover {
+        box-shadow:
+          0 6px 10px rgba(0, 0, 0, 0.05),
+          0 22px 50px rgba(0, 0, 0, 0.09);
+      }
+
+      .container .card:nth-child(1) { animation-delay: 0.02s; }
+      .container .card:nth-child(2) { animation-delay: 0.06s; }
+      .container .card:nth-child(3) { animation-delay: 0.1s; }
+      .container .card:nth-child(4) { animation-delay: 0.14s; }
+      .container .card:nth-child(5) { animation-delay: 0.18s; }
+      .container .card:nth-child(n+6) { animation-delay: 0.22s; }
+
+      .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--red-primary), var(--coral));
+        opacity: 0.95;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      }
+
+      .card--hero {
+        padding-top: 2.5rem;
+      }
+
+      .card--accent {
+        border: none;
+        box-shadow: 0 16px 48px rgba(102, 126, 234, 0.38);
+      }
+
+      .card--accent:hover {
+        box-shadow: 0 20px 56px rgba(102, 126, 234, 0.45);
+        transform: translateY(-1px);
+      }
+
+      .card--accent::before {
+        height: 0;
+        opacity: 0;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .prediction-section {
+        text-align: center;
+        padding: 1.5rem 1rem 1.75rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 0;
+        background: linear-gradient(165deg, rgba(229, 57, 53, 0.07) 0%, rgba(102, 126, 234, 0.05) 50%, transparent 100%);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+      }
+
+      .prediction-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 0.75rem;
+        color: #888888;
+      }
+
+      .prediction-text {
+        font-size: clamp(1.65rem, 4vw, 2.15rem);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        padding: 1.1rem 1.75rem;
+        border-radius: 14px;
+        display: inline-block;
+        margin: 0.35rem 0 0.25rem;
+      }
+
+      .prediction-probability {
+        font-size: 1.05rem;
+        margin-top: 1rem;
+        font-weight: 500;
+        color: #555555;
+      }
+
+      .prediction-probability strong {
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .danger {
+        color: #c62828;
+        background: linear-gradient(145deg, rgba(229, 57, 53, 0.12) 0%, rgba(229, 57, 53, 0.06) 100%);
+        border: 2px solid rgba(229, 57, 53, 0.55);
+        box-shadow: 0 6px 20px rgba(229, 57, 53, 0.12);
+      }
+
+      .safe {
+        color: #1b5e20;
+        background: linear-gradient(145deg, rgba(46, 125, 50, 0.12) 0%, rgba(46, 125, 50, 0.05) 100%);
+        border: 2px solid rgba(46, 125, 50, 0.45);
+        box-shadow: 0 6px 20px rgba(46, 125, 50, 0.1);
+      }
+
+      .explanation-section {
+        margin-top: 0;
+      }
+
+      .section-title {
+        font-size: 1.28rem;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        margin-bottom: 1.1rem;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        line-height: 1.25;
+      }
+
+      .section-title::before {
+        content: '';
+        width: 4px;
+        height: 1.2em;
+        border-radius: 2px;
+        background: linear-gradient(180deg, var(--red-primary), var(--coral));
+        flex-shrink: 0;
+      }
+
+      .section-title--on-dark {
+        color: #ffffff;
+      }
+
+      .section-title--on-dark::before {
+        background: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, 0.65));
+      }
+
+      .subheading {
+        font-size: 1.02rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #2a2a2a;
+        margin: 1.35rem 0 0.85rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 1px solid #ececec;
+      }
+
+      .card-intro {
+        font-size: 1.05rem;
+        line-height: 1.65;
+        opacity: 0.95;
+        margin-bottom: 0.25rem;
+      }
+
+      .explanation-text {
+        font-size: 1.02rem;
+        line-height: 1.82;
+        color: #3d3d3d;
+        background: linear-gradient(180deg, #fafafa 0%, #f3f4f6 100%);
+        padding: 1.25rem 1.35rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 0.5rem;
+        white-space: pre-line;
+        border: 1px solid #e8e8ec;
+      }
+
+      .summary-soft {
+        background: linear-gradient(180deg, #fafafa 0%, #f5f5f7 100%) !important;
+        border: 1px solid #ececf0 !important;
+      }
+
+      .explanation-text strong,
+      .summary-soft strong {
+        color: var(--red-primary);
+        font-weight: 700;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .features-grid--stats {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      }
+
+      .feature-card {
+        background: linear-gradient(155deg, #ffffff 0%, #f6f6f8 100%);
+        padding: 1.15rem 1.15rem 1.2rem;
+        border-radius: var(--radius-md);
+        border: 1px solid #ececf0;
+        border-left: 4px solid var(--red-primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.07);
+      }
+
+      .feature-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+        color: #555;
+      }
+
+      .feature-value {
+        font-size: 0.95rem;
+        color: #444;
+        margin-bottom: 0.5rem;
+        line-height: 1.45;
+      }
+
+      .goal-stat {
+        font-size: 1.28rem !important;
+        font-weight: 700 !important;
+        color: var(--purple) !important;
+        letter-spacing: -0.02em;
+      }
+
+      .schedule-pill {
+        display: inline-block;
+        margin-top: 0.35rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        background: linear-gradient(135deg, #e3f2fd 0%, #e8eaf6 100%);
+        color: #1565c0;
+        border: 1px solid rgba(25, 118, 210, 0.2);
+      }
+
+      .feature-contribution {
+        font-size: 0.9rem;
+        font-weight: 500;
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: inline-block;
+      }
+
+      .contribution-positive {
+        color: #e53935;
+        background: rgba(229, 57, 53, 0.1);
+      }
+
+      .contribution-negative {
+        color: #2e7d32;
+        background: rgba(46, 125, 50, 0.1);
+      }
+
+      .top-features {
+        margin-top: 20px;
+      }
+
+      .top-features-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .top-features-list li {
+        padding: 0.9rem 1.05rem;
+        margin: 0.45rem 0;
+        background: #f8f8fa;
+        border-radius: var(--radius-sm);
+        border-left: 4px solid var(--red-primary);
+        font-weight: 500;
+        line-height: 1.5;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+      }
+
+      .top-features-list li:hover {
+        background: #ffffff;
+        transform: translateX(4px);
+      }
+
+      .list-item--purple {
+        background: linear-gradient(90deg, #f0f4ff 0%, #f7f8fc 100%) !important;
+        border-left-color: var(--purple) !important;
+      }
+
+      .list-item--amber {
+        background: linear-gradient(90deg, #fffdf5 0%, #fff9e6 100%) !important;
+        border-left-color: var(--amber) !important;
+      }
+
+      .tag-risk-up {
+        color: var(--red-primary);
+        font-weight: 600;
+        font-size: 0.88rem;
+      }
+
+      .tag-risk-down {
+        color: #2e7d32;
+        font-weight: 600;
+        font-size: 0.88rem;
+      }
+
+      .disclaimer-card {
+        background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%) !important;
+        border: 1px solid rgba(255, 193, 7, 0.55) !important;
+        box-shadow: 0 8px 24px rgba(133, 100, 4, 0.08);
+      }
+
+      .disclaimer-card::before {
+        height: 0;
+        opacity: 0;
+      }
+
+      .disclaimer-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #856404;
+        margin-bottom: 0.65rem;
+      }
+
+      .disclaimer-body {
+        color: #856404;
+        line-height: 1.65;
+        font-size: 0.98rem;
+      }
+
+      .btn-back {
+        display: inline-block;
+        margin-top: 30px;
+        padding: 0.85rem 2rem;
+        background: linear-gradient(90deg, var(--red-primary), var(--coral));
+        border: none;
+        border-radius: 12px;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        transition: all 0.3s ease;
+        font-family: "Poppins", sans-serif;
+        box-shadow: 0 6px 20px rgba(229, 57, 53, 0.32);
+      }
+
+      .btn-back:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(229, 57, 53, 0.5);
+        background: linear-gradient(90deg, #ff6f61, #e53935);
+      }
+
+      .btn-back:focus-visible {
+        outline: 2px solid #ffffff;
+        outline-offset: 3px;
+      }
+
+      .layout-actions {
+        text-align: center;
+        padding: 0.5rem 0 1.5rem;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 1.75rem 1.25rem;
+        color: #888888;
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0.02em;
+        background: linear-gradient(180deg, #fafafa 0%, #f0f0f0 100%);
+        margin-top: auto;
+        border-top: 1px solid #ececec;
+      }
+
+      .footer span {
+        color: #e53935;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .container {
+          padding: 1.5rem 1rem 2.5rem;
+        }
+
+        .header {
+          padding: 1.75rem 1.25rem 2rem;
+        }
+
+        .card {
+          padding: 1.5rem 1.2rem;
+        }
+
+        .prediction-text {
+          font-size: 1.45rem;
+          padding: 0.95rem 1.25rem;
+        }
+
+        .features-grid,
+        .features-grid--stats {
+          grid-template-columns: 1fr;
+        }
+
+        .card:hover {
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-inner">
+        <p class="header-kicker">Results · Explainable AI · Recommendations</p>
+        <h1>Your prediction &amp; insights</h1>
+        <p class="header-sub">
+          Below you will see the model outcome, why the model leaned that way (SHAP),
+          and practical diet and activity guidance tailored to your inputs.
+        </p>
+      </div>
+    </div>
+    <div class="container">
+      <!-- Prediction Card -->
+      <div class="card card--hero">
+        <div class="prediction-section">
+          <div class="prediction-label">Outcome</div>
+          {% if prediction == 1 %}
+          <div class="prediction-text danger">DIABETIC</div>
+          {% else %}
+          <div class="prediction-text safe">NON-DIABETIC</div>
+          {% endif %}
+          {% if explanation %}
+          <div class="prediction-probability">
+            Model confidence (diabetes class): <strong>{{ "%.1f"|format(explanation.probability * 100) }}%</strong>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Explanation Card -->
+      {% if explanation %}
+      <div class="card">
+        <div class="explanation-section">
+          <h2 class="section-title">Why This Prediction?</h2>
+          <div class="explanation-text">{{ explanation.explanation_text }}</div>
+        </div>
+      </div>
+
+      <!-- Top Features Card -->
+      {% if explanation.top_features %}
+      <div class="card">
+        <h2 class="section-title">Top Contributing Factors</h2>
+        <ul class="top-features-list">
+          {% for feature in explanation.top_features[:5] %}
+          <li>
+            {{ loop.index }}. {{ feature }}
+            {% if explanation.feature_contributions[feature] %}
+              {% set contrib = explanation.feature_contributions[feature] %}
+              {% if contrib.shap_value > 0 %}
+                <span class="tag-risk-up"> (↑ increases risk)</span>
+              {% else %}
+                <span class="tag-risk-down"> (↓ decreases risk)</span>
+              {% endif %}
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- Detailed Feature Contributions -->
+      {% if explanation.feature_contributions %}
+      <div class="card">
+        <h2 class="section-title">Detailed Feature Analysis</h2>
+        <div class="features-grid">
+          {% for feature, contrib in explanation.feature_contributions|dictsort %}
+          <div class="feature-card">
+            <div class="feature-name">{{ feature }}</div>
+            <div class="feature-value">Value: {{ "%.2f"|format(contrib.feature_value) }}</div>
+            <div class="feature-contribution {% if contrib.shap_value > 0 %}contribution-positive{% else %}contribution-negative{% endif %}">
+              {% if contrib.shap_value > 0 %}
+                +{{ "%.4f"|format(contrib.shap_value) }} (increases risk)
+              {% else %}
+                {{ "%.4f"|format(contrib.shap_value) }} (decreases risk)
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      {% endif %}
+
+      <!-- Recommendations Section -->
+      {% if recommendation %}
+      <div class="card card--accent" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <h2 class="section-title section-title--on-dark">Personalized recommendations</h2>
+        <p class="card-intro">
+          Based on your risk assessment and preferences, here are focused lifestyle ideas you can discuss with a clinician.
+        </p>
+      </div>
+
+      <!-- Priority Interventions -->
+      {% if recommendation.priority_interventions %}
+      <div class="card">
+        <h2 class="section-title">Priority Focus Areas</h2>
+        <ul class="top-features-list">
+          {% for intervention in recommendation.priority_interventions %}
+          <li class="list-item--purple">
+            {{ loop.index }}. {{ intervention }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- Diet Plan -->
+      {% if recommendation.diet_plan %}
+      <div class="card">
+        <h2 class="section-title">Diet Plan ({{ recommendation.diet_plan.diet_type }})</h2>
+        <div class="explanation-text summary-soft">
+          {{ recommendation.diet_plan.summary }}
+        </div>
+        
+        <h3 class="subheading">Daily meal guidelines</h3>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-name">Breakfast</div>
+            <div class="feature-value">{{ recommendation.diet_plan.daily_guidelines.breakfast }}</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-name">Lunch</div>
+            <div class="feature-value">{{ recommendation.diet_plan.daily_guidelines.lunch }}</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-name">Dinner</div>
+            <div class="feature-value">{{ recommendation.diet_plan.daily_guidelines.dinner }}</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-name">Snacks</div>
+            <div class="feature-value">{{ recommendation.diet_plan.daily_guidelines.snacks }}</div>
+          </div>
+        </div>
+        
+        {% if recommendation.diet_plan.weekly_focus %}
+        <h3 class="subheading">Weekly focus</h3>
+        <ul class="top-features-list">
+          {% for focus in recommendation.diet_plan.weekly_focus %}
+          <li>{{ focus }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Exercise Plan -->
+      {% if recommendation.exercise_plan %}
+      <div class="card">
+        <h2 class="section-title">Exercise Plan</h2>
+        <div class="explanation-text summary-soft">
+          {{ recommendation.exercise_plan.summary }}
+        </div>
+        
+        <h3 class="subheading">Weekly schedule</h3>
+        <div class="features-grid">
+          {% for day_plan in recommendation.exercise_plan.weekly_plan %}
+          <div class="feature-card">
+            <div class="feature-name">{{ day_plan.day }}</div>
+            <div class="feature-value">{{ day_plan.activity }}</div>
+            <span class="schedule-pill">{{ day_plan.type|title }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        
+        {% if recommendation.exercise_plan.goals %}
+        <h3 class="subheading">Goals</h3>
+        <div class="features-grid features-grid--stats">
+          <div class="feature-card">
+            <div class="feature-name">Weekly Minutes</div>
+            <div class="feature-value goal-stat">
+              {{ recommendation.exercise_plan.goals.weekly_minutes }} min
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-name">Strength Sessions</div>
+            <div class="feature-value goal-stat">
+              {{ recommendation.exercise_plan.goals.strength_sessions_per_week }}/week
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-name">Daily Steps Target</div>
+            <div class="feature-value goal-stat">
+              {{ "{:,}".format(recommendation.exercise_plan.goals.daily_steps_target) }}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Nudges -->
+      {% if recommendation.nudges %}
+      <div class="card">
+        <h2 class="section-title">Tracking & Behavioral Tips</h2>
+        <ul class="top-features-list">
+          {% for nudge in recommendation.nudges %}
+          <li class="list-item--amber">
+            {{ nudge }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- Disclaimer -->
+      <div class="card disclaimer-card">
+        <h3 class="disclaimer-title">⚠ Important disclaimer</h3>
+        <p class="disclaimer-body">
+          {{ recommendation.disclaimer }}
+        </p>
+      </div>
+      {% endif %}
+
+      <!-- Back Button -->
+      <div class="layout-actions">
+        <a href="{{ url_for('home') }}" class="btn-back">Make Another Prediction</a>
+      </div>
+    </div>
+    <div class="footer">Made with <span>❤️</span> | Powered by Explainable AI (SHAP) & Recommendation Engine</div>
+  </body>
+</html>
+

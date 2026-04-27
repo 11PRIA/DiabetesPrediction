@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Diabetes Predictor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --red-primary: #e53935;
+        --red-deep: #d32f2f;
+        --coral: #ff6f61;
+        --purple: #667eea;
+        --text: #2a2a2a;
+        --text-muted: #666666;
+        --border: #e4e4e7;
+        --radius-sm: 10px;
+        --radius-md: 14px;
+        --radius-lg: 22px;
+        --shadow-card: 0 4px 6px rgba(0, 0, 0, 0.04), 0 18px 44px rgba(0, 0, 0, 0.08);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: #fafafa;
+        color: var(--text);
+        padding: 0;
+        background-image: url('{{ url_for("static", filename="diabetes.png") }}');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+        position: relative;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.62);
+        z-index: -1;
+      }
+
+      .header {
+        background: linear-gradient(115deg, var(--red-primary) 0%, #c62828 45%, var(--red-deep) 100%);
+        padding: 2.25rem 1.5rem 2.5rem;
+        text-align: center;
+        box-shadow:
+          0 4px 6px rgba(183, 28, 28, 0.12),
+          0 12px 28px rgba(0, 0, 0, 0.12);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255, 255, 255, 0.18), transparent 55%);
+        pointer-events: none;
+      }
+
+      .header-inner {
+        position: relative;
+        z-index: 1;
+        max-width: 36rem;
+        margin: 0 auto;
+      }
+
+      .header-kicker {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.88);
+        margin-bottom: 0.75rem;
+      }
+
+      .header h1 {
+        color: #ffffff;
+        font-size: clamp(1.85rem, 4vw, 2.65rem);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        text-shadow: 0 2px 24px rgba(0, 0, 0, 0.18);
+      }
+
+      .header-sub {
+        margin-top: 1rem;
+        font-size: 0.98rem;
+        font-weight: 400;
+        line-height: 1.55;
+        color: rgba(255, 255, 255, 0.92);
+        max-width: 28rem;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .page-main {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 2.5rem 1.25rem 3rem;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 560px;
+      }
+
+      .card {
+        position: relative;
+        background: #ffffff;
+        border-radius: var(--radius-lg);
+        padding: 2.35rem 2rem 2.5rem;
+        box-shadow: var(--shadow-card);
+        width: 100%;
+        animation: fadeIn 0.55s ease-out both;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+      }
+
+      .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--red-primary), var(--coral));
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      }
+
+      .form-intro {
+        font-size: 0.92rem;
+        line-height: 1.55;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        padding: 0.85rem 1rem;
+        background: linear-gradient(135deg, rgba(229, 57, 53, 0.06) 0%, rgba(102, 126, 234, 0.06) 100%);
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+      }
+
+      .form-intro strong {
+        color: var(--red-primary);
+        font-weight: 700;
+      }
+
+      .clinical-block {
+        margin-bottom: 0.25rem;
+      }
+
+      .clinical-block .block-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #888;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+      }
+
+      .clinical-block .block-title::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, var(--border), transparent);
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 1rem 1.15rem;
+        grid-template-columns: 1fr;
+      }
+
+      @media (min-width: 520px) {
+        .form-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .form-grid .form-group--full {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .form-group {
+        margin-bottom: 0;
+      }
+
+      .preferences-block {
+        margin-top: 1.75rem;
+        padding: 1.35rem 1.15rem 0.25rem;
+        border-radius: var(--radius-md);
+        background: rgba(102, 126, 234, 0.04);
+        border: 1px solid rgba(102, 126, 234, 0.12);
+      }
+
+      .preferences-block .block-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #1f1f1f;
+        margin-bottom: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.5rem 0.6rem;
+      }
+
+      .preferences-block .block-title::before {
+        content: '';
+        width: 4px;
+        height: 1.15em;
+        border-radius: 2px;
+        background: linear-gradient(180deg, var(--red-primary), var(--coral));
+        flex-shrink: 0;
+      }
+
+      .optional-hint {
+        font-weight: 500;
+        color: #999999;
+        font-size: 0.82rem;
+        letter-spacing: 0;
+        margin-left: 0.25rem;
+      }
+
+      .field-label {
+        display: block;
+        margin-bottom: 0.35rem;
+        color: var(--text-muted);
+        font-size: 0.82rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        background: #fcfcfc;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        color: var(--text);
+        font-size: 0.95rem;
+        font-family: "Poppins", sans-serif;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.15s ease;
+        outline: none;
+      }
+
+      select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23666' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        padding-right: 2.5rem;
+      }
+
+      input::placeholder {
+        color: #999999;
+      }
+
+      input:hover,
+      select:hover {
+        border-color: rgba(229, 57, 53, 0.42);
+      }
+
+      input:hover {
+        background: #ffffff;
+      }
+
+      select:hover {
+        background-color: #ffffff;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: var(--red-primary);
+        box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.12);
+        background: #ffffff;
+      }
+
+      input:focus-visible,
+      select:focus-visible,
+      .btn-predict:focus-visible {
+        outline: 2px solid var(--red-primary);
+        outline-offset: 2px;
+      }
+
+      .btn-predict {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        margin-top: 1.5rem;
+        background: linear-gradient(95deg, var(--red-primary) 0%, #e53935 40%, var(--coral) 100%);
+        border: none;
+        border-radius: var(--radius-md);
+        color: #ffffff;
+        font-size: 1.02rem;
+        font-weight: 600;
+        font-family: "Poppins", sans-serif;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        box-shadow: 0 8px 24px rgba(229, 57, 53, 0.35);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-predict::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+
+      .btn-predict:hover::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      .btn-predict:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(229, 57, 53, 0.42);
+        filter: brightness(1.03);
+      }
+
+      .btn-predict:active {
+        transform: translateY(0);
+      }
+
+      .btn-predict span {
+        position: relative;
+        z-index: 1;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 1.75rem 1.25rem;
+        color: #888888;
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0.02em;
+        background: linear-gradient(180deg, #fafafa 0%, #f0f0f0 100%);
+        border-top: 1px solid #ececec;
+        margin-top: auto;
+      }
+
+      .footer span {
+        color: #e53935;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .page-main {
+          padding: 1.75rem 1rem 2.5rem;
+        }
+
+        .header {
+          padding: 1.75rem 1.25rem 2rem;
+        }
+
+        .header-sub {
+          font-size: 0.9rem;
+        }
+
+        .card {
+          padding: 1.75rem 1.35rem;
+        }
+
+        input,
+        select {
+          padding: 12px 14px;
+          font-size: 14px;
+        }
+
+        .btn-predict {
+          padding: 14px 24px;
+          font-size: 16px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .header {
+          padding: 1.5rem 1rem 1.75rem;
+        }
+
+        .header-kicker {
+          font-size: 0.65rem;
+          letter-spacing: 0.18em;
+        }
+
+        .card {
+          padding: 1.35rem 1.1rem;
+          border-radius: var(--radius-md);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-inner">
+        <p class="header-kicker">Risk assessment · Explainable AI</p>
+        <h1>Diabetes Predictor</h1>
+        <p class="header-sub">
+          Enter your clinical inputs below. You will receive a prediction, SHAP-based
+          explanation, and personalized lifestyle suggestions.
+        </p>
+      </div>
+    </div>
+    <main class="page-main">
+    <div class="container">
+      <div class="card">
+        <form action="{{ url_for('predict') }}" method="post">
+          <p class="form-intro">
+            All fields use the same units as the Pima Indians diabetes dataset. Use <strong>0</strong> only if the value was genuinely missing; otherwise enter real measurements.
+          </p>
+
+          <div class="clinical-block">
+            <h2 class="block-title">Clinical measurements</h2>
+            <div class="form-grid">
+          <div class="form-group">
+            <label class="field-label" for="pregnancies">Pregnancies</label>
+            <input
+              id="pregnancies"
+              type="text"
+              name="pregnancies"
+              placeholder="e.g. 0"
+              inputmode="numeric"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="glucose">Glucose (mg/dL)</label>
+            <input
+              id="glucose"
+              type="text"
+              name="glucose"
+              placeholder="e.g. 120"
+              inputmode="numeric"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="bloodpressure">Blood pressure (mmHg)</label>
+            <input
+              id="bloodpressure"
+              type="text"
+              name="bloodpressure"
+              placeholder="e.g. 72"
+              inputmode="numeric"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="skinthickness">Skin thickness (mm)</label>
+            <input
+              id="skinthickness"
+              type="text"
+              name="skinthickness"
+              placeholder="e.g. 20"
+              inputmode="numeric"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="insulin">Insulin (μU/mL)</label>
+            <input
+              id="insulin"
+              type="text"
+              name="insulin"
+              placeholder="e.g. 80"
+              inputmode="numeric"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="bmi">BMI (kg/m²)</label>
+            <input
+              id="bmi"
+              type="text"
+              name="bmi"
+              placeholder="e.g. 25.4"
+              inputmode="decimal"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="dpf">Diabetes pedigree function</label>
+            <input
+              id="dpf"
+              type="text"
+              name="dpf"
+              placeholder="e.g. 0.52"
+              inputmode="decimal"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="age">Age (years)</label>
+            <input
+              id="age"
+              type="text"
+              name="age"
+              placeholder="e.g. 34"
+              inputmode="numeric"
+              required
+            />
+          </div>
+            </div>
+          </div>
+          
+          <!-- Recommendation Preferences (Optional) -->
+          <div class="preferences-block">
+            <h3 class="block-title">Recommendation preferences <small class="optional-hint">(optional)</small></h3>
+            
+            <div class="form-group">
+              <label class="field-label" for="diet_pref">Diet preference</label>
+              <select id="diet_pref" name="diet_pref">
+                <option value="non-veg">Non-Vegetarian</option>
+                <option value="vegetarian">Vegetarian</option>
+                <option value="vegan">Vegan</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="field-label" for="activity_level">Activity level</label>
+              <select id="activity_level" name="activity_level">
+                <option value="sedentary">Sedentary (Little to no exercise)</option>
+                <option value="light">Light (Light exercise 1-3 days/week)</option>
+                <option value="moderate">Moderate (Moderate exercise 3-5 days/week)</option>
+                <option value="active">Active (Active exercise 6-7 days/week)</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="field-label" for="time_per_day_min">Time for exercise (minutes per day)</label>
+              <input
+                id="time_per_day_min"
+                type="number"
+                name="time_per_day_min"
+                placeholder="30"
+                value="30"
+                min="10"
+                max="120"
+              />
+            </div>
+          </div>
+          
+          <button type="submit" class="btn-predict">
+            <span>Predict & Get Recommendations</span>
+          </button>
+        </form>
+      </div>
+    </div>
+    </main>
+    <div class="footer">Made with <span>❤️</span></div>
+  </body>
+</html>
